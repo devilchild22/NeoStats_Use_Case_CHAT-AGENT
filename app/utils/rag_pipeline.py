@@ -41,7 +41,7 @@ def generate_answer(question: str, mode: str) -> str:
                 "or ask a general question and I can search the web."
             )
 
-        retriever = vectorstore.as_retriever()
+        retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
         docs = retriever.invoke(question)
 
         context = "\n".join([doc.page_content for doc in docs])
@@ -51,38 +51,55 @@ def generate_answer(question: str, mode: str) -> str:
         llm = load_groq_client()
 
         if mode == MODE_CONCISE:
-            prompt = f"""Answer briefly using this context.
+            prompt = f"""
+You are an AI assistant answering questions based ONLY on the provided document context.
 
-Context:
+INSTRUCTIONS:
+- Use only the information from the context below.
+- Do NOT add external knowledge.
+- If the answer is not present in the context, say: "The uploaded document does not contain information about this."
+
+RESPONSE STYLE:
+- Keep the answer very short.
+- Maximum length: 3 lines.
+- Use simple and direct language.
+- Avoid long explanations.
+- If bullet points are needed, keep them extremely brief.
+
+CONTEXT:
 {context}
 
-Question:
+QUESTION:
 {question}
+
 """
         else:
-            prompt = f"""Give a detailed explanation.
+            prompt = f"""
+You are an AI assistant answering questions using the provided document context.
 
-Context:
+INSTRUCTIONS:
+- Use only the information from the context below.
+- Do NOT add external knowledge.
+- If the context does not contain the answer, say: "The uploaded document does not contain information about this."
+
+RESPONSE STYLE:
+- Provide a clear and well-structured explanation.
+- Use proper formatting suitable for UI display.
+- Use headings, bullet points, or numbered steps where helpful.
+- Keep the explanation easy to understand.
+
+CONTEXT:
 {context}
 
-Question:
+QUESTION:
 {question}
-"""
 
+"""
         response = llm.invoke(prompt)
 
-        if not response.content:
-            web_results = web_search(question)
-            prompt = f"""Answer using web data.
+        logger.info(f"Response from LLM for RAG pipeline: {response.content}")
 
-{web_results}
-
-Question:
-{question}
-"""
-            response = llm.invoke(prompt)
-
-        return response.content or "I couldn't generate a response. Please try rephrasing or uploading a document."
+        return response.content
 
     except RAGError:
         raise
