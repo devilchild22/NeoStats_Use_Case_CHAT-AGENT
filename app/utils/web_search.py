@@ -7,7 +7,7 @@ from ddgs import DDGS
 from app.utils.logger.logger import get_logger
 
 logger = get_logger()
-MAX_RESULTS = 5
+MAX_RESULTS = 3
 
 
 def web_search(query: str) -> str:

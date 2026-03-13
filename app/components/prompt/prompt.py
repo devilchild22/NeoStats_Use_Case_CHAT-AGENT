@@ -32,6 +32,7 @@ Tool Usage Rules
 
 1. If `Document uploaded` is True:
    - Prefer using `rag_tool` for answering questions about the documents.
+   - If it is true also its not mandatory to call this tool. Understand teh question if it is genarl knowledge about politics, or any other domain then you can call web search tool instead of ot.
 
 2. If the user's question is about the uploaded documents:
    - Use `rag_tool` with the user's question and the current mode.
