@@ -1,5 +1,5 @@
 """
-Streamlit entry point for Neostas.
+Streamlit entry point for NeoStats.
 
 Provides a chat interface with optional document upload, concise/detailed mode,
 and per-user conversation state. Run with:
@@ -47,7 +47,7 @@ def init_session_state() -> None:
             st.session_state[key] = SESSION_DEFAULTS[key]
 
 
-st.set_page_config(page_title="Neostas", layout="wide")
+st.set_page_config(page_title="NeoStats", layout="wide")
 init_session_state()
 
 # Sidebar: file upload and mode
