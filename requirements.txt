@@ -1,0 +1,15 @@
+streamlit
+langchain
+langchain-community
+langchain-groq
+openai
+faiss-cpu
+tiktoken
+python-dotenv
+ddgs
+pypdf
+flask
+langchain-huggingface
+sentence_transformers
+langgraph-checkpoint==4.0.1
+langchain-text-splitters==1.1.1

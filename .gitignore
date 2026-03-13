@@ -1,0 +1,13 @@
+# Virtual env
+kvenv
+venv
+.venv
+env
+
+# Secrets and env (never commit real keys)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.local
+*.pem
