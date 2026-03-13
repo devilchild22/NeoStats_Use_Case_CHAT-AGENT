@@ -10,7 +10,7 @@ from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
-
+from langchain.agents.middleware import ToolCallLimitMiddleware
 from app.components.models.llm import load_groq_client
 from app.components.prompt.prompt import AGENT_PROMPT
 from app.utils.logger.logger import get_logger
@@ -72,6 +72,19 @@ def initialize_agent():
             tools=tools,
             system_prompt=AGENT_PROMPT,
             checkpointer=memory,
+            middleware=[
+                ToolCallLimitMiddleware(thread_limit=20, run_limit=2),
+                ToolCallLimitMiddleware(
+                    tool_name="internet_search",
+                    thread_limit=30,
+                    run_limit=1,
+                ),
+                ToolCallLimitMiddleware(
+                    tool_name="rag_tool",
+                    thread_limit=30,
+                    run_limit=1,
+                ),
+            ],
         )
         return agent
     except Exception as e:
