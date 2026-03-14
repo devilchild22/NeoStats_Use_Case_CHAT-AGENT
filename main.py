@@ -275,7 +275,7 @@ html, body, [data-testid="stAppViewContainer"] {
 [data-testid="stSidebar"] .stRadio label { color: rgba(232,232,240,0.75) !important; }
 [data-testid="stSidebar"] .stFileUploader label { color: rgba(232,232,240,0.7) !important; }
 
-/* Top bar branding */
+/* Top bar branding — fixed at top, never scrolls */
 .topbar {
     display: flex;
     align-items: center;
@@ -287,6 +287,34 @@ html, body, [data-testid="stAppViewContainer"] {
     position: sticky;
     top: 0;
     z-index: 100;
+    flex-shrink: 0;
+}
+
+/* Chat layout: only the messages area scrolls; header and input stay fixed */
+section.main .block-container {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+}
+/* Header section (summary, info, welcome) does not scroll */
+section.main .block-container [data-testid="stVerticalBlock"]:not(:has([data-testid="stChatMessage"])) {
+    flex-shrink: 0 !important;
+}
+/* Messages container is the only scrollable area */
+section.main .block-container [data-testid="stVerticalBlock"]:has([data-testid="stChatMessage"]) {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 0 1.5rem 1rem !important;
+}
+/* Chat input fixed at bottom */
+section.main [data-testid="stChatInputContainer"] {
+    flex-shrink: 0 !important;
 }
 .topbar-brand {
     font-family: 'Syne', sans-serif;
@@ -354,7 +382,7 @@ html, body, [data-testid="stAppViewContainer"] {
     padding: 0.85rem 1.2rem !important;
 }
 
-/* Chat input */
+/* Chat input — stays at bottom, does not scroll */
 [data-testid="stChatInputContainer"] {
     background: rgba(15,15,26,0.95) !important;
     border-top: 1px solid rgba(255,255,255,0.07) !important;
@@ -541,7 +569,7 @@ with st.sidebar:
     st.markdown("### 📋 Summarize")
     st.caption("Summarize a document without adding it to the index. Upload PDF or TXT below.")
     summarize_file = st.file_uploader(
-        "Document to summarize",
+        "Document to summarize. Please Upload document with less than 5 pages",
         type=["pdf", "txt"],
         key="summarize_uploader",
         label_visibility="collapsed",
@@ -565,16 +593,6 @@ with st.sidebar:
                 st.error("Summarization failed. Please try again.")
 
     st.markdown("---")
-    st.markdown("### ⚙️ Response mode")
-    mode = st.radio(
-        "mode",
-        options=["concise", "detailed"],
-        format_func=lambda x: "⚡ Concise" if x == "concise" else "📖 Detailed",
-        key="mode",
-        label_visibility="collapsed",
-    )
-
-    st.markdown("---")
     st.markdown("### 🤖 How it works")
     st.html("""
 <div style="font-size:0.82rem; color:rgba(232,232,240,0.5); line-height:1.65;">
@@ -593,9 +611,9 @@ with st.sidebar:
         st.session_state.started = False
         st.rerun()
 
-# ── Chat area ──
-chat_container = st.container()
-with chat_container:
+# ── Chat area: header (fixed) + messages (scrollable) ──
+# Header: summary, info, welcome — does not scroll
+with st.container():
     if st.session_state.last_summary:
         with st.expander(f"📋 Summary: {st.session_state.last_summary['title']}", expanded=True):
             st.markdown(st.session_state.last_summary["text"])
@@ -609,24 +627,25 @@ with chat_container:
             "Upload a file in the sidebar to enable RAG over your own data."
         )
 
-    if not st.session_state.messages:
-        # Welcome message
-        st.html("""
-<div style="
+    # Welcome / "Ask me anything" — always visible at top, never scrolls
+    st.html("""
+<div class="chat-header-welcome" style="
     text-align:center;
-    padding: 3.5rem 1rem 2rem;
+    padding: 2rem 1rem 1.5rem;
     color: rgba(232,232,240,0.35);
     font-size: 0.92rem;
     line-height: 1.7;
 ">
-  <div style="font-size:2.5rem; margin-bottom:1rem;">⚡</div>
-  <div style="font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:700; color:rgba(232,232,240,0.6); margin-bottom:0.5rem;">
+  <div style="font-size:2.5rem; margin-bottom:0.75rem;">⚡</div>
+  <div style="font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:700; color:rgba(232,232,240,0.6); margin-bottom:0.4rem;">
     Ask me anything
   </div>
-  I'll search your documents, browse the web,<br/>and synthesise a cited answer for you.
+  <div style="font-size:0.88rem;">I'll search your documents, browse the web, and synthesise a cited answer for you.</div>
 </div>
 """)
 
+# Messages only — this block is the one that scrolls
+with st.container():
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -634,7 +653,18 @@ with chat_container:
                 with st.expander("🔗 Sources"):
                     st.json(msg["sources"])
 
-# ── Chat input ──
+# ── Chat input + mode toggle (Concise by default, toggle for Detailed) ──
+toggle_col, _ = st.columns([1, 5])
+with toggle_col:
+    detailed_mode = st.toggle(
+        "📖 Detailed",
+        value=False,
+        key="response_mode_toggle",
+        help="Off = Concise (default), On = Detailed",
+    )
+mode = "detailed" if detailed_mode else "concise"
+st.caption("Response mode: **⚡ Concise**" if mode == "concise" else "Response mode: **📖 Detailed**")
+
 if prompt := st.chat_input("Ask a question…"):
     st.session_state.messages.append({"role": "user", "content": prompt})
 

@@ -5,6 +5,10 @@ Defines tool usage (RAG vs web search), response mode (concise/detailed),
 and formatting guidelines for Streamlit.
 """
 
+from datetime import datetime
+
+current_date_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 AGENT_PROMPT = """
 You are a friendly and helpful AI assistant.
 
@@ -87,6 +91,9 @@ Structure answers so they render properly in Streamlit:
 - Avoid large blocks of text.
 
 --------------------------------------------------
+
+CURRENT DATE AND TIME
+The current date and time is {current_date_time}. Use for web search
 
 General Behavior
 
