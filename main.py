@@ -382,28 +382,12 @@ section.main [data-testid="stChatInputContainer"] {
     padding: 0.85rem 1.2rem !important;
 }
 
-/* Mode bar (toggle) inside same visual box as chat input */
-#chat-mode-bar-row {
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    border: none !important;
-}
-#chat-mode-bar-row + *,
-#chat-mode-bar-row + * + * {
+/* Chat input — stays at bottom, does not scroll */
+[data-testid="stChatInputContainer"] {
     background: rgba(15,15,26,0.95) !important;
     border-top: 1px solid rgba(255,255,255,0.07) !important;
     backdrop-filter: blur(12px) !important;
-    padding: 0.4rem 1.5rem 0.25rem !important;
-    margin: 0 !important;
-}
-#chat-mode-bar-row + * + * { border-top: none !important; }
-[data-testid="stChatInputContainer"] {
-    background: rgba(15,15,26,0.95) !important;
-    border-top: none !important;
-    backdrop-filter: blur(12px) !important;
-    padding: 0.5rem 1.5rem 1rem !important;
+    padding: 1rem 1.5rem !important;
 }
 [data-testid="stChatInputContainer"] textarea {
     background: rgba(255,255,255,0.05) !important;
@@ -528,7 +512,20 @@ st.html("""
 """)
 
 # ── Sidebar ──
+
 with st.sidebar:
+
+    st.markdown("---")
+    st.markdown("### ⚙️ Response mode")
+    mode = st.radio(
+        "mode",
+        options=["concise", "detailed"],
+        format_func=lambda x: "⚡ Concise" if x == "concise" else "📖 Detailed",
+        key="mode",
+        label_visibility="collapsed",
+    )
+
+    
     st.markdown("### 📂 Document")
     uploaded_file = st.file_uploader(
         "Upload a file",
@@ -608,6 +605,8 @@ with st.sidebar:
                 logger.exception("Summarize error")
                 st.error("Summarization failed. Please try again.")
 
+
+
     st.markdown("---")
     st.markdown("### 🤖 How it works")
     st.html("""
@@ -669,19 +668,7 @@ with st.container():
                 with st.expander("🔗 Sources"):
                     st.json(msg["sources"])
 
-# ── Chat input + mode toggle inside the same visual box as the text input ──
-st.html('<div id="chat-mode-bar-row"></div>')
-toggle_col, _ = st.columns([1, 5])
-with toggle_col:
-    detailed_mode = st.toggle(
-        "📖 Detailed",
-        value=False,
-        key="response_mode_toggle",
-        help="Off = Concise (default), On = Detailed",
-    )
-mode = "detailed" if detailed_mode else "concise"
-st.caption("Response mode: **⚡ Concise**" if mode == "concise" else "Response mode: **📖 Detailed**")
-
+# ── Chat input ──
 if prompt := st.chat_input("Ask a question…"):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
