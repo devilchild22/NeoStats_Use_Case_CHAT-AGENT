@@ -1,4 +1,4 @@
-# NeoStats — Chat Agent
+# Neo-AI — Chat Agent
 
 A conversational AI assistant that answers questions using your own documents and, when needed, the web. Ask in plain language and get answers with clear sources.
 
@@ -6,7 +6,7 @@ A conversational AI assistant that answers questions using your own documents an
 
 ## What It Does
 
-**NeoStats** is a **chat agent** that:
+**Neo-AI** is a **chat agent** that:
 
 - **Talks about your documents** — Upload PDFs, text files, Word docs, or spreadsheets. Ask questions and get answers grounded in your files, with references to the exact parts used.
 - **Searches the web when useful** — For things not in your documents (e.g. market news, recent updates), the agent can search the internet and summarize what it finds.
@@ -49,4 +49,4 @@ You can ask about your uploaded files only, or mix in general questions; the age
 ---
 
 
-*NeoStats — Chat with your documents and the web.*
+*Neo-AI — Chat with your documents and the web.*

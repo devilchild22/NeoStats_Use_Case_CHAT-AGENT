@@ -1,5 +1,5 @@
 """
-Streamlit entry point for NeoStats.
+Streamlit entry point for Neo-AI.
 
 Provides a chat interface with optional document upload, concise/detailed mode,
 and per-user conversation state. Run with:
@@ -67,7 +67,7 @@ def init_session_state() -> None:
 
 
 # ─── Page config ────────────────────────────────────────────────────────────
-st.set_page_config(page_title="NeoStats", layout="wide", page_icon="⚡")
+st.set_page_config(page_title="Neo-AI", layout="wide", page_icon="⚡")
 init_session_state()
 
 # ─── Global CSS ─────────────────────────────────────────────────────────────
@@ -427,12 +427,12 @@ if not st.session_state.started:
         <div class="badge"><span class="badge-dot"></span>Intelligent Research Agent</div>
 
         <h1 class="landing-title">
-          Meet <span class="highlight">NeoStats</span><br/>
-          Your AI Research Partner
+          Meet <span class="highlight">NEO-AI</span><br/>
+          Your AI Partner
         </h1>
 
         <p class="landing-subtitle">
-          NeoStats combines <strong>Retrieval-Augmented Generation</strong> with
+          Neo-AI combines <strong>Retrieval-Augmented Generation</strong> with
           <strong>real-time web search</strong> to give you precise, cited answers —
           whether from your uploaded documents or the live web.
         </p>
@@ -478,7 +478,7 @@ if not st.session_state.started:
 # ── Top bar ──
 st.html("""
 <div class="topbar">
-  <span class="topbar-brand">⚡ NeoStats</span>
+  <span class="topbar-brand">⚡ NeoAI</span>
   <span class="topbar-status"><span class="status-dot"></span>Agent online</span>
 </div>
 """)
@@ -605,7 +605,7 @@ with chat_container:
 
     if not st.session_state.vectorstore:
         st.info(
-            "💡 No document loaded — NeoStats will answer using web search and its knowledge. "
+            "💡 No document loaded — Neo-AI will answer using web search and its knowledge. "
             "Upload a file in the sidebar to enable RAG over your own data."
         )
 
