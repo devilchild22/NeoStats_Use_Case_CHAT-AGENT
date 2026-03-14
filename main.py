@@ -6,23 +6,41 @@ and per-user conversation state. Run with:
 
     streamlit run main.py
 """
+import os
 import streamlit as st
 from app.components.agent.agent import answer_query
 from app.utils.process_doc.processing import process_document
+from app.utils.summarize import summarize_document
 from app.utils.logger.logger import get_logger
 from app.exceptions import DocumentProcessingError
 
 logger = get_logger()
 
 # Session state keys and defaults (single source of truth)
-SESSION_KEYS = ("vectorstore", "messages", "thread_id", "last_processed_file", "started")
+SESSION_KEYS = (
+    "vectorstore",
+    "messages",
+    "thread_id",
+    "last_processed_file",
+    "started",
+    "current_document_name",
+    "last_summary",
+)
 SESSION_DEFAULTS = {
     "vectorstore": None,
     "messages": [],
     "thread_id": "streamlit-default",
     "last_processed_file": None,
     "started": False,
+    "current_document_name": None,
+    "last_summary": None,
 }
+
+
+def document_display_name(filename: str) -> str:
+    """Convert filename to a readable title for prompts (e.g. 'Summarize Attention is all you need')."""
+    name = os.path.splitext(filename)[0]
+    return name.replace("_", " ").replace("-", " ").strip()
 
 
 class StreamlitFileAdapter:
@@ -397,13 +415,13 @@ html, body, [data-testid="stAppViewContainer"] {
 """, unsafe_allow_html=True)
 
 # ─── Grain overlay (rendered once) ──────────────────────────────────────────
-st.markdown('<div class="grain"></div>', unsafe_allow_html=True)
+st.html('<div class="grain"></div>')
 
 # ════════════════════════════════════════════════════════════════════════════
 #  LANDING PAGE
 # ════════════════════════════════════════════════════════════════════════════
 if not st.session_state.started:
-    st.markdown("""
+    st.html("""
     <div class="landing-wrap">
       <div class="landing-content">
         <div class="badge"><span class="badge-dot"></span>Intelligent Research Agent</div>
@@ -441,7 +459,7 @@ if not st.session_state.started:
         </div>
       </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
     # Center the button
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -458,12 +476,12 @@ if not st.session_state.started:
 # ════════════════════════════════════════════════════════════════════════════
 
 # ── Top bar ──
-st.markdown("""
+st.html("""
 <div class="topbar">
   <span class="topbar-brand">⚡ NeoStats</span>
   <span class="topbar-status"><span class="status-dot"></span>Agent online</span>
 </div>
-""", unsafe_allow_html=True)
+""")
 
 # ── Sidebar ──
 with st.sidebar:
@@ -484,6 +502,7 @@ with st.sidebar:
                 if vectorstore is not None:
                     st.session_state.vectorstore = vectorstore
                     st.session_state.last_processed_file = file_key
+                    st.session_state.current_document_name = document_display_name(uploaded_file.name)
                     chunks = vectorstore.index.ntotal
                     st.success(f"✓ {uploaded_file.name} ({chunks} chunks)")
                 else:
@@ -500,6 +519,51 @@ with st.sidebar:
         else:
             st.success(f"✓ {uploaded_file.name} loaded")
 
+    # Summarize button when a document is indexed (does not modify vectorstore)
+    if st.session_state.vectorstore and st.session_state.current_document_name and uploaded_file is not None:
+        if st.button("📄 Summarize the document", key="sidebar_summarize", use_container_width=True):
+            try:
+                with st.spinner("Summarizing…"):
+                    adapter = StreamlitFileAdapter(uploaded_file)
+                    summary_text = summarize_document(adapter)
+                    st.session_state.last_summary = {
+                        "title": st.session_state.current_document_name,
+                        "text": summary_text,
+                    }
+                st.rerun()
+            except ValueError as e:
+                st.error(f"Invalid file: {e}")
+            except Exception as e:
+                logger.exception("Summarize error")
+                st.error("Summarization failed. Please try again.")
+
+    st.markdown("---")
+    st.markdown("### 📋 Summarize")
+    st.caption("Summarize a document without adding it to the index. Upload PDF or TXT below.")
+    summarize_file = st.file_uploader(
+        "Document to summarize",
+        type=["pdf", "txt"],
+        key="summarize_uploader",
+        label_visibility="collapsed",
+        help="Upload a PDF or TXT to summarize. This does not modify the RAG index.",
+    )
+    if summarize_file is not None:
+        if st.button("Summarize this document", key="summarize_upload_btn", use_container_width=True):
+            try:
+                with st.spinner("Summarizing…"):
+                    adapter = StreamlitFileAdapter(summarize_file)
+                    summary_text = summarize_document(adapter)
+                    st.session_state.last_summary = {
+                        "title": document_display_name(summarize_file.name),
+                        "text": summary_text,
+                    }
+                st.rerun()
+            except ValueError as e:
+                st.error(f"Invalid file: {e}")
+            except Exception as e:
+                logger.exception("Summarize error")
+                st.error("Summarization failed. Please try again.")
+
     st.markdown("---")
     st.markdown("### ⚙️ Response mode")
     mode = st.radio(
@@ -512,17 +576,17 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 🤖 How it works")
-    st.markdown("""
+    st.html("""
 <div style="font-size:0.82rem; color:rgba(232,232,240,0.5); line-height:1.65;">
 
-**1. RAG** — Searches your uploaded document using semantic vector retrieval.
+<strong>1. RAG</strong> — Searches your uploaded document using semantic vector retrieval.
 
-**2. Web Search** — Falls back to live internet results when needed.
+<strong>2. Web Search</strong> — Falls back to live internet results when needed.
 
-**3. Memory** — Maintains context throughout your conversation.
+<strong>3. Memory</strong> — Maintains context throughout your conversation.
 
 </div>
-""", unsafe_allow_html=True)
+""")
 
     st.markdown("---")
     if st.button("← Back to Home", use_container_width=True):
@@ -532,6 +596,13 @@ with st.sidebar:
 # ── Chat area ──
 chat_container = st.container()
 with chat_container:
+    if st.session_state.last_summary:
+        with st.expander(f"📋 Summary: {st.session_state.last_summary['title']}", expanded=True):
+            st.markdown(st.session_state.last_summary["text"])
+        if st.button("Clear summary", key="clear_summary"):
+            st.session_state.last_summary = None
+            st.rerun()
+
     if not st.session_state.vectorstore:
         st.info(
             "💡 No document loaded — NeoStats will answer using web search and its knowledge. "
@@ -540,7 +611,7 @@ with chat_container:
 
     if not st.session_state.messages:
         # Welcome message
-        st.markdown("""
+        st.html("""
 <div style="
     text-align:center;
     padding: 3.5rem 1rem 2rem;
@@ -554,7 +625,7 @@ with chat_container:
   </div>
   I'll search your documents, browse the web,<br/>and synthesise a cited answer for you.
 </div>
-""", unsafe_allow_html=True)
+""")
 
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
