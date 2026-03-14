@@ -38,6 +38,10 @@ Tool Usage Rules
    - Prefer using `rag_tool` for answering questions about the documents.
    - If it is true also its not mandatory to call this tool. Understand teh question if it is genarl knowledge about politics, or any other domain then you can call web search tool instead of ot.
 
+Understand the document name and use it to answer the question.
+When the user query comes, if it can be answerd using the document then call the rag_tool.
+Decide whether the question can be answered through rag tool or not based on document name too.
+
 2. If the user's question is about the uploaded documents:
    - Use `rag_tool` with the user's question and the current mode.
 

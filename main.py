@@ -525,7 +525,7 @@ with st.sidebar:
         label_visibility="collapsed",
     )
 
-    
+
     st.markdown("### 📂 Document")
     uploaded_file = st.file_uploader(
         "Upload a file",
@@ -684,6 +684,7 @@ if prompt := st.chat_input("Ask a question…"):
                     thread_id=st.session_state.thread_id,
                     vectorstore=st.session_state.vectorstore,
                     document_uploaded=True if st.session_state.vectorstore is not None else False,
+                    document_name=st.session_state.current_document_name,
                 )
                 answer = result.get("answer", "")
                 sources = result.get("sources")

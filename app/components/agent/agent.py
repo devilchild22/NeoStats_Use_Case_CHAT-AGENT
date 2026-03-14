@@ -109,6 +109,7 @@ def answer_query(
     thread_id: str,
     vectorstore: Any,
     document_uploaded: bool,
+    document_name: str,
 ) -> Dict[str, Any]:
     """
     Run the agent on a user query and return the answer and optional sources.
@@ -119,7 +120,7 @@ def answer_query(
         thread_id: Id for conversation state (e.g. user name).
         vectorstore: FAISS vectorstore or None if no document uploaded.
         document_uploaded: Whether a document is currently loaded.
-
+        document_name: Name of the document.
     Returns:
         Dict with "answer" (str) and "sources" (optional list).
 
@@ -136,7 +137,8 @@ def answer_query(
                     "content": (
                         f"The user query is: {user_query}\n"
                         f"The mode is: {mode}\n"
-                        f"Document uploaded: {document_uploaded}"
+                        f"Document uploaded: {document_uploaded}\n"
+                        f"Document name: {document_name}"
                     ),
                 }
             ]
