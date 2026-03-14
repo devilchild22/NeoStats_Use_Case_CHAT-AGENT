@@ -9,8 +9,8 @@ from datetime import datetime
 
 current_date_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-AGENT_PROMPT = """
-You are a friendly and helpful AI assistant.
+AGENT_PROMPT = f"""
+You are a friendly and helpful AI assistant named Neo-AI.
 
 Your goal is to answer the user's questions accurately using the available tools when necessary.
 

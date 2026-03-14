@@ -382,12 +382,28 @@ section.main [data-testid="stChatInputContainer"] {
     padding: 0.85rem 1.2rem !important;
 }
 
-/* Chat input — stays at bottom, does not scroll */
-[data-testid="stChatInputContainer"] {
+/* Mode bar (toggle) inside same visual box as chat input */
+#chat-mode-bar-row {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+}
+#chat-mode-bar-row + *,
+#chat-mode-bar-row + * + * {
     background: rgba(15,15,26,0.95) !important;
     border-top: 1px solid rgba(255,255,255,0.07) !important;
     backdrop-filter: blur(12px) !important;
-    padding: 1rem 1.5rem !important;
+    padding: 0.4rem 1.5rem 0.25rem !important;
+    margin: 0 !important;
+}
+#chat-mode-bar-row + * + * { border-top: none !important; }
+[data-testid="stChatInputContainer"] {
+    background: rgba(15,15,26,0.95) !important;
+    border-top: none !important;
+    backdrop-filter: blur(12px) !important;
+    padding: 0.5rem 1.5rem 1rem !important;
 }
 [data-testid="stChatInputContainer"] textarea {
     background: rgba(255,255,255,0.05) !important;
@@ -653,7 +669,8 @@ with st.container():
                 with st.expander("🔗 Sources"):
                     st.json(msg["sources"])
 
-# ── Chat input + mode toggle (Concise by default, toggle for Detailed) ──
+# ── Chat input + mode toggle inside the same visual box as the text input ──
+st.html('<div id="chat-mode-bar-row"></div>')
 toggle_col, _ = st.columns([1, 5])
 with toggle_col:
     detailed_mode = st.toggle(
